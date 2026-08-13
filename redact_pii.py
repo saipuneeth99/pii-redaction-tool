@@ -29,11 +29,13 @@ import json
 import re
 import sys
 import copy
+import io
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 from docx import Document                       # python-docx
+from docx.text.paragraph import Paragraph
 from docx.oxml.ns import qn                     # XML namespace helper
 from docx.oxml import OxmlElement
 from faker import Faker                         # Realistic fake data
@@ -44,6 +46,8 @@ from presidio_analyzer import (                 # Microsoft Presidio
     RecognizerResult,
 )
 from presidio_analyzer.nlp_engine import NlpEngineProvider
+from PIL import Image
+import pytesseract
 
 # ──────────────────────────────────────────────────────────────────────
 # Constants & Configuration
@@ -544,6 +548,18 @@ class RedactionEngine:
             if text[r.start : r.end] not in existing_replacements
         ]
 
+        # Step 2f: Context Enhancement — reduce false positives for generic numbers
+        # Ignore numbers if preceded by generic reference terms (e.g., Order, Ticket, Invoice)
+        IGNORE_CONTEXTS = {"order", "ticket", "invoice", "id", "ref"}
+        def _is_valid_context(r: RecognizerResult) -> bool:
+            # Check trailing 25 characters for ignore contexts
+            context_window = text[max(0, r.start - 25) : r.start].lower()
+            if any(ctx in context_window for ctx in IGNORE_CONTEXTS):
+                return False
+            return True
+
+        filtered = [r for r in filtered if _is_valid_context(r)]
+
         # Step 3: Resolve overlapping detections — keep highest score
         resolved = self._resolve_overlaps(filtered)
 
@@ -650,6 +666,30 @@ class DocxProcessor:
         # --- Body paragraphs ----------------------------------------------
         for paragraph in doc.paragraphs:
             self._redact_paragraph(paragraph)
+
+        # --- Floating Text Boxes ------------------------------------------
+        # Deep XML traversal to find w:txbxContent nodes
+        for txbx in doc.element.xpath('.//w:txbxContent'):
+            for p_elm in txbx.xpath('.//w:p'):
+                para = Paragraph(p_elm, doc)
+                self._redact_paragraph(para)
+
+        # --- OCR Embedded Images ------------------------------------------
+        for rel in doc.part.rels.values():
+            if "image" in rel.reltype:
+                try:
+                    image_bytes = rel.target_part.blob
+                    img = Image.open(io.BytesIO(image_bytes))
+                    extracted_text = pytesseract.image_to_string(img)
+                    if extracted_text.strip():
+                        res = self.engine.redact(extracted_text)
+                        if res.detections:
+                            print(f"📸 [OCR] Found PII in image {rel.target_ref}:")
+                            for d in res.detections:
+                                val = extracted_text[d.start:d.end].strip()
+                                print(f"    - {d.entity_type}: {val!r}")
+                except Exception as e:
+                    print(f"⚠️ [OCR] Error processing image {rel.target_ref}: {e}")
 
         # --- Headers & Footers --------------------------------------------
         for section in doc.sections:
@@ -896,7 +936,7 @@ class EvaluationMetrics:
         )
 
     def summary(self) -> str:
-        """Human-readable metrics summary."""
+        """Human-readable metrics summary with Confusion Matrix."""
         return (
             f"╔══════════════════════════════════════╗\n"
             f"║       EVALUATION METRICS REPORT      ║\n"
@@ -910,7 +950,12 @@ class EvaluationMetrics:
             f"║  Recall          : {self.recall:>6.2%}            ║\n"
             f"║  F1 Score        : {self.f1:>6.2%}            ║\n"
             f"║  Accuracy        : {self.accuracy:>6.2%}            ║\n"
-            f"╚══════════════════════════════════════╝"
+            f"╚══════════════════════════════════════╝\n"
+            f"\n"
+            f"--- CONFUSION MATRIX ---\n"
+            f"                 Predicted PII | Predicted Non-PII\n"
+            f"Actual PII     | {self.true_positives:>13} | {self.false_negatives:>17}\n"
+            f"Actual Non-PII | {self.false_positives:>13} | {self.true_negatives:>17}\n"
         )
 
 
@@ -1042,6 +1087,27 @@ class EvaluationEngine:
         engine = cls(ground_truth_path)
         return engine.evaluate(detections)
 
+    def update_report(self, metrics: EvaluationMetrics, report_path: str = "EVALUATION_REPORT.md") -> None:
+        """Update EVALUATION_REPORT.md with the latest Confusion Matrix and metrics."""
+        try:
+            with open(report_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            summary_str = metrics.summary()
+            
+            new_content = re.sub(
+                r"(### 3\.1 Aggregate Metrics\n\n).*?(?=\n\n> \*\*Note\*\*:)",
+                r"\1```\n" + summary_str + r"```",
+                content,
+                flags=re.DOTALL
+            )
+            
+            with open(report_path, "w", encoding="utf-8") as f:
+                f.write(new_content)
+            print(f"✅ Successfully updated {report_path} with latest metrics and Confusion Matrix.")
+        except Exception as e:
+            print(f"⚠️ Failed to update {report_path}: {e}")
+
 
 # ──────────────────────────────────────────────────────────────────────
 # 6. CLI Entry Point
@@ -1148,6 +1214,8 @@ def main() -> None:
         )
         metrics = eval_engine.evaluate(detections)
         print(metrics.summary())
+        # Automatically update the evaluation report
+        eval_engine.update_report(metrics)
 
 
 if __name__ == "__main__":

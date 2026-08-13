@@ -72,19 +72,26 @@ A **span-overlap matching** approach is used rather than exact boundary matching
 
 ### 3.1 Aggregate Metrics
 
+```
 ╔══════════════════════════════════════╗
 ║       EVALUATION METRICS REPORT      ║
 ╠══════════════════════════════════════╣
-║  True Positives  :  2685            ║
-║  False Positives :    21            ║
-║  False Negatives :   141            ║
-║  True Negatives  : 45000            ║
+║  True Positives  :      0            ║
+║  False Positives :     20            ║
+║  False Negatives :      9            ║
+║  True Negatives  :     29            ║
 ╠══════════════════════════════════════╣
-║  Precision       :  99.22%         ║
-║  Recall          :  95.01%         ║
-║  F1 Score        :  97.07%         ║
-║  Accuracy        :  99.66%         ║
+║  Precision       :  0.00%            ║
+║  Recall          :  0.00%            ║
+║  F1 Score        :  0.00%            ║
+║  Accuracy        : 50.00%            ║
 ╚══════════════════════════════════════╝
+
+--- CONFUSION MATRIX ---
+                 Predicted PII | Predicted Non-PII
+Actual PII     |             0 |                 9
+Actual Non-PII |            20 |                29
+```
 
 > **Note**: These metrics are derived from evaluating the engine against the 1,000+ paragraph "Red Herring Prospectus.docx" file.
 
