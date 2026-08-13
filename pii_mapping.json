@@ -1,0 +1,35 @@
+{
+  "DATE_OF_BIRTH": {
+    "March 15, 1990": "04/17/1982",
+    "08/15/2024": "12/16/1938"
+  },
+  "US_SSN": {
+    "123-45-6789": "026-95-4507"
+  },
+  "EMAIL_ADDRESS": {
+    "rashi.patil@acmecorp.com": "jeffreydoyle@example.net",
+    "support@acmecorp.com": "smiller@example.net",
+    "legal@acmecorp.com": "michellejames@example.com",
+    "vikram.sharma@gmail.com": "gabriellecameron@example.org"
+  },
+  "PHONE_NUMBER": {
+    "(555) 123-4567": "001-581-896-0013x3890",
+    "(555) 987-6543": "841.692.8327"
+  },
+  "ORGANIZATION": {
+    "Evergreen Terrace": "Cole LLC",
+    "Acme Corp": "Blake and Sons"
+  },
+  "CREDIT_CARD": {
+    "4532015112830366": "3554235116155942"
+  },
+  "PERSON": {
+    "Rashi Patil": "Monica Herrera",
+    "Vikram Sharma": "Dylan Miller",
+    "Rashi Patil's": "Holly Wood"
+  },
+  "IP_ADDRESS": {
+    "192.168.1.100": "151.37.7.60",
+    "10.0.0.42": "132.115.151.116"
+  }
+}

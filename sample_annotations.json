@@ -1,0 +1,59 @@
+{
+  "full_text": "Rashi Patil works at Acme Corp. Her email is rashi.patil@acmecorp.com and she can be reached at (555) 123-4567. Her SSN is 123-45-6789 and she was born on March 15, 1990. She lives at 742 Evergreen Terrace, Springfield, IL 62704. Her company credit card number is 4532015112830366 and her work IP is 192.168.1.100.",
+  "annotations": [
+    {
+      "start": 0,
+      "end": 12,
+      "entity_type": "PERSON",
+      "text": "Rashi Patil"
+    },
+    {
+      "start": 22,
+      "end": 31,
+      "entity_type": "ORGANIZATION",
+      "text": "Acme Corp"
+    },
+    {
+      "start": 46,
+      "end": 70,
+      "entity_type": "EMAIL_ADDRESS",
+      "text": "rashi.patil@acmecorp.com"
+    },
+    {
+      "start": 99,
+      "end": 113,
+      "entity_type": "PHONE_NUMBER",
+      "text": "(555) 123-4567"
+    },
+    {
+      "start": 126,
+      "end": 137,
+      "entity_type": "US_SSN",
+      "text": "123-45-6789"
+    },
+    {
+      "start": 158,
+      "end": 172,
+      "entity_type": "DATE_OF_BIRTH",
+      "text": "March 15, 1990"
+    },
+    {
+      "start": 190,
+      "end": 233,
+      "entity_type": "ADDRESS",
+      "text": "742 Evergreen Terrace, Springfield, IL 62704"
+    },
+    {
+      "start": 267,
+      "end": 283,
+      "entity_type": "CREDIT_CARD",
+      "text": "4532015112830366"
+    },
+    {
+      "start": 303,
+      "end": 316,
+      "entity_type": "IP_ADDRESS",
+      "text": "192.168.1.100"
+    }
+  ]
+}
