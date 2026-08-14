@@ -146,12 +146,11 @@ def _build_analyzer() -> AnalyzerEngine:
     """
 
     # --- spaCy NLP backend ------------------------------------------------
-    # We use spaCy's `en_core_web_lg` model for higher accuracy on named
-    # entities (PERSON, ORG, GPE).  Falls back to `en_core_web_sm` if lg
-    # is not installed, but accuracy will degrade.
+    # We use spaCy's `en_core_web_sm` model for lightweight, memory-efficient
+    # NER (PERSON, ORG, GPE).  This keeps RAM usage under 512MB for cloud PaaS.
     nlp_configuration = {
         "nlp_engine_name": "spacy",
-        "models": [{"lang_code": "en", "model_name": "en_core_web_lg"}],
+        "models": [{"lang_code": "en", "model_name": "en_core_web_sm"}],
     }
 
     try:
